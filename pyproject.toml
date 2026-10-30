@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pulse-tui"
+version = "0.1.0.dev0"
+description = "Audio-reactive 3D wireframe terrain for the terminal, powered by CAVA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24"]
+
+[project.urls]
+Repository = "https://github.com/tjcanro/pulse-tui"
+Issues = "https://github.com/tjcanro/pulse-tui/issues"
+
+[project.scripts]
+pulse-tui = "pulse_tui.app:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false

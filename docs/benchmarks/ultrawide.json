@@ -1,0 +1,48 @@
+{
+  "scope": "Local renderer and text encoding time; excludes terminal display and output transport.",
+  "mesh_density": 2.0,
+  "before": [
+    {
+      "size": "120x40",
+      "ms": 38.9,
+      "frame_bytes": 20582
+    },
+    {
+      "size": "240x65",
+      "ms": 61.1,
+      "frame_bytes": 51610
+    },
+    {
+      "size": "360x90",
+      "ms": 102.9,
+      "frame_bytes": 91234
+    },
+    {
+      "size": "480x110",
+      "ms": 159.2,
+      "frame_bytes": 133413
+    }
+  ],
+  "native": [
+    {
+      "size": "120x40",
+      "ms": 4.0,
+      "frame_bytes": 20601
+    },
+    {
+      "size": "240x65",
+      "ms": 5.2,
+      "frame_bytes": 51665
+    },
+    {
+      "size": "360x90",
+      "ms": 7.6,
+      "frame_bytes": 91379
+    },
+    {
+      "size": "480x110",
+      "ms": 11.7,
+      "frame_bytes": 133684
+    }
+  ]
+}
