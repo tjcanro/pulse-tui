@@ -6,7 +6,7 @@
 - Expand sustained-music and quiet-track testing beyond synthetic input.
 - Expand the README animation with recordings of mesh controls and ultrawide behavior.
 - Decide licensing and release packaging.
-- Split the prototype's Python application into modules when interfaces settle.
+- Keep the audio, scene, camera, rendering, and terminal module boundaries clear as features evolve.
 
 ## Explore CAVA upstream interest
 

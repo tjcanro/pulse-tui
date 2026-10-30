@@ -1,15 +1,24 @@
 from pathlib import Path
-import importlib.util, sys, os, tempfile, threading, time, struct, fcntl, termios, subprocess, select, signal
+import sys, os, tempfile, threading, time, struct, fcntl, termios, subprocess, select, signal
 import numpy as np
 import math
-path=Path(__file__).resolve().parents[1] / 'src/pulse_tui/app.py'
-spec=importlib.util.spec_from_file_location('pulse_tui',path)
-m=importlib.util.module_from_spec(spec);sys.modules[spec.name]=m;spec.loader.exec_module(m)
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'src'))
+from pulse_tui.audio import CavaInput, RawFrames
+from pulse_tui.rasterizer import depth_mask
+from pulse_tui.renderer import Renderer
+from pulse_tui.scene import Scene
+from pulse_tui.settings import BARS, BG, Options
+from pulse_tui.terminal import Terminal, handle_keys
+
+# Exercise the same package entry point as the launcher and installed CLI.
+CLI = [sys.executable, '-m', 'pulse_tui']
+os.environ['PYTHONPATH'] = str(ROOT / 'src') + os.pathsep + os.environ.get('PYTHONPATH', '')
 
 # Deterministic spectra are test fixtures only, not an application mode.
 def synthetic_spectrum(now):
-    bins = np.linspace(0, 1, m.BARS)
-    values = np.zeros(m.BARS)
+    bins = np.linspace(0, 1, BARS)
+    values = np.zeros(BARS)
     pattern = (0, 2, 1, 2, 0, 1, 2, 1, 0, 2, 2, 1)
     beat = .31
     index = int(now / beat)
@@ -23,19 +32,19 @@ def synthetic_spectrum(now):
 
 
 # Actual framing: incomplete reads, multiple frames, leftovers.
-r=m.RawFrames(4)
+r=RawFrames(4)
 assert r.feed(bytes([1,2,3])) is None
 assert np.allclose(r.feed(bytes([4,5,6,7,8,9])),np.array([5,6,7,8])/255)
 assert r.pending==bytearray([9])
 assert np.allclose(r.feed(bytes([10,11,12])),np.array([9,10,11,12])/255)
 print('PASS raw frame boundaries')
 
-renderer=m.Renderer();scene=m.Scene()
+renderer=Renderer();scene=Scene()
 for t in np.arange(0,3.2,1/60):scene.update(synthetic_spectrum(t),t,1/60)
 assert scene.pulses
 occupancy = []
 for density in (.5, 1, 2, 4):
- opt=m.Options(density=density, camera='overhead')
+ opt=Options(density=density, camera='overhead')
  begin=time.perf_counter()
  lines=renderer.frame(scene,3.2,opt,120,40,'TEST INPUT',24)
  assert len(lines)==40
@@ -46,19 +55,19 @@ for density in (.5, 1, 2, 4):
  print(f'PASS mesh {density}x ({renderer.mesh_n}x{renderer.mesh_n}); frame plus dot check {(time.perf_counter()-begin)*1000:.1f} ms')
 assert occupancy[-1]>occupancy[1], occupancy
 # A flat triangle must have continuous, exact surface depth in its interior.
-depth=m.Renderer.depth_mask(np.array([1.,8.,1.]),np.array([1.,1.,8.]),np.array([2.,2.,2.]),np.array([[0,1,2]]),10,10).reshape(10,10)
+depth=depth_mask(np.array([1.,8.,1.]),np.array([1.,1.,8.]),np.array([2.,2.,2.]),np.array([[0,1,2]]),10,10).reshape(10,10)
 assert np.allclose(depth[2:4,2:4],2)
 assert np.isinf(depth[9,9])
-opt=m.Options()
-m.handle_keys(']',opt,scene,3.2);assert opt.density==2.25
-m.handle_keys('[',opt,scene,3.2);assert opt.density==2
+opt=Options()
+handle_keys(']',opt,scene,3.2);assert opt.density==2.25
+handle_keys('[',opt,scene,3.2);assert opt.density==2
 print('PASS finer/coarser controls, denser screen coverage, and surface depth')
 
 # The native hot loops must preserve the portable renderer's visible geometry.
 if renderer.native:
- portable=m.Renderer(use_native=False)
+ portable=Renderer(use_native=False)
  for cols,rows,camera,density in [(120,40,'flight',1),(240,65,'overhead',2),(360,90,'flight',2),(120,40,'fixed',4)]:
-  opt=m.Options(camera=camera,density=density)
+  opt=Options(camera=camera,density=density)
   native_dots=renderer.dots(scene,3.2,opt,cols,rows-4)
   python_dots=portable.dots(scene,3.2,opt,cols,rows-4)
   disagreements=np.count_nonzero((native_dots>=0)!=(python_dots>=0))
@@ -70,7 +79,7 @@ else:
  print('Native library unavailable; portable renderer tests remain active.')
 # Repeated frames must not be resent, and row colors must be self-contained.
 import io
-terminal=m.Terminal();terminal.previous_lines=[]
+terminal=Terminal();terminal.previous_lines=[]
 original_stdout=sys.stdout
 capture=io.StringIO()
 try:
@@ -79,7 +88,7 @@ try:
  first=capture.getvalue();terminal.draw(['a','b'])
  assert capture.getvalue()==first
  terminal.draw(['a','c'])
- assert capture.getvalue()[len(first):]==m.BG+'\x1b[2;1Hc\x1b[K'
+ assert capture.getvalue()[len(first):]==BG+'\x1b[2;1Hc\x1b[K'
 finally:
  sys.stdout=original_stdout
 print('PASS unchanged-row output suppression')
@@ -89,7 +98,7 @@ with tempfile.TemporaryDirectory() as tmp:
  fifo=Path(tmp)/'pcm';os.mkfifo(fifo)
  conf=Path(tmp)/'input.conf';conf.write_text('[input]\nmethod = fifo\nsource = '+str(fifo)+'\n')
  before=conf.read_bytes()
- audio=m.CavaInput(conf)
+ audio=CavaInput(conf)
  stop=threading.Event()
  def write_pcm():
   deadline=time.monotonic()+4
@@ -131,7 +140,7 @@ import pty
 master,slave=pty.openpty()
 fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',35,100,0,0))
 original=termios.tcgetattr(slave)
-p=subprocess.Popen([sys.executable,str(path),'--input-method','fifo','--source','/dev/zero','--fps','18','--duration','8'],stdin=slave,stdout=slave,stderr=slave)
+p=subprocess.Popen([*CLI,'--input-method','fifo','--source','/dev/zero','--fps','18','--duration','8'],stdin=slave,stdout=slave,stderr=slave)
 output=bytearray()
 def pump(seconds):
  end=time.monotonic()+seconds
@@ -160,7 +169,7 @@ print('PASS interactive mesh/camera/energy controls, resize, quit, terminal rest
 master,slave=pty.openpty()
 fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',24,80,0,0))
 original=termios.tcgetattr(slave)
-p=subprocess.Popen([sys.executable,str(path),'--input-method','fifo','--source','/dev/zero','--duration','5'],stdin=slave,stdout=slave,stderr=slave)
+p=subprocess.Popen([*CLI,'--input-method','fifo','--source','/dev/zero','--duration','5'],stdin=slave,stdout=slave,stderr=slave)
 output=bytearray()
 deadline=time.monotonic()+3
 while b'LIVE / CAVA' not in output and p.poll() is None and time.monotonic()<deadline:pump(.1)
@@ -172,8 +181,8 @@ os.close(master);os.close(slave)
 print('PASS Ctrl-C restoration')
 
 # Removed modes must be rejected by argument parsing rather than starting audio.
-result=subprocess.run([sys.executable,str(path),'--demo'],capture_output=True,text=True)
+result=subprocess.run([*CLI,'--demo'],capture_output=True,text=True)
 assert result.returncode==2 and 'unrecognized arguments: --demo' in result.stderr
-help_result=subprocess.run([sys.executable,str(path),'--help'],capture_output=True,text=True,check=True)
+help_result=subprocess.run([*CLI,'--help'],capture_output=True,text=True,check=True)
 assert '--demo' not in help_result.stdout and '--snapshot' not in help_result.stdout
 print('PASS removed mode rejection and live-only CLI help')

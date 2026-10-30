@@ -100,7 +100,7 @@ This is an independent front end consuming CAVA's existing raw interface. Source
 ## Project layout
 
 ```text
-src/pulse_tui/          Python application and CLI entry point
+src/pulse_tui/          Audio, scene, camera, renderer, terminal, and CLI modules
 native/wireframe.c     Native rasterizer source
 scripts/               Native build helper
 tests/                 Renderer, audio-stream, and terminal integration checks
@@ -111,6 +111,8 @@ pyproject.toml         Python package metadata
 ```
 
 Development commands: `make build`, `make run`, and `make test`. To install into an existing development environment, use `python3 -m pip install -e .`; the `pulse-tui` command is then available. Build native acceleration with `make build` before running. CAVA is an external runtime dependency.
+
+For a step-by-step explanation of the Python/C boundary and how sound becomes Braille text, read [how Pulse works](docs/architecture.md).
 
 More detail: [architecture](docs/architecture.md), [performance](docs/performance.md), and [roadmap](docs/roadmap.md).
 
