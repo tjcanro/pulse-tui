@@ -1,0 +1,61 @@
+{
+  "note": "Local computation/encoding only; excludes terminal transport/display. Same generated stereo score, 2x mesh, native renderer. Concurrent recording may affect timings.",
+  "results": [
+    {
+      "look": "classic",
+      "cols": 120,
+      "rows": 40,
+      "mean_ms": 3.59,
+      "p95_ms": 3.82
+    },
+    {
+      "look": "classic",
+      "cols": 240,
+      "rows": 65,
+      "mean_ms": 5.44,
+      "p95_ms": 5.82
+    },
+    {
+      "look": "classic",
+      "cols": 360,
+      "rows": 90,
+      "mean_ms": 7.84,
+      "p95_ms": 8.32
+    },
+    {
+      "look": "classic",
+      "cols": 480,
+      "rows": 110,
+      "mean_ms": 11.56,
+      "p95_ms": 14.62
+    },
+    {
+      "look": "cinematic",
+      "cols": 120,
+      "rows": 40,
+      "mean_ms": 6.48,
+      "p95_ms": 9.59
+    },
+    {
+      "look": "cinematic",
+      "cols": 240,
+      "rows": 65,
+      "mean_ms": 8.29,
+      "p95_ms": 12.46
+    },
+    {
+      "look": "cinematic",
+      "cols": 360,
+      "rows": 90,
+      "mean_ms": 9.57,
+      "p95_ms": 11.98
+    },
+    {
+      "look": "cinematic",
+      "cols": 480,
+      "rows": 110,
+      "mean_ms": 10.93,
+      "p95_ms": 11.29
+    }
+  ]
+}

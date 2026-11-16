@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Pulse · audio-only character</title>
+<style>body{background:#080510;color:#d6cde4;font:16px/1.6 system-ui;margin:0}main{max-width:1100px;margin:auto;padding:30px}video,img{width:100%;display:block}a,code{color:#7fe0ec}h1,h2{font-weight:600}p{max-width:900px}</style>
+<main><h1>Audio-only character · wider color expression</h1>
+<p>Same tempo, different low-end timbres. Left: pitched/rounded bass stays warm.
+Right: broad, punchy, regular bass favors Neon at 120 BPM. As mids and highs build,
+each family becomes brighter and more colorful. These are controlled, generated
+spectra rendered by the actual TUI, not recordings or proof of artist recognition.</p>
+<video controls muted loop playsinline poster="comparison.png"><source src="demo.mp4" type="video/mp4"></video>
+<p><a href="demo.gif">Animated GIF</a> · <a href="comparison.png">Full-size still</a></p>
+<h2>Nine quiet-to-lively families</h2><img src="atlas.png" alt="Nine palette families, each shown at quiet and lively expression">
+<p>Default: <code>party</code>. More expressive: <code>party --color-response 1.8</code>.
+Lock a family with <code>--palette warm</code>, <code>neon</code>, <code>aurora</code>,
+<code>crimson</code>, <code>gold</code>, <code>violet</code>, <code>sunset</code>,
+<code>ice</code>, or <code>blue</code>. Press <code>p</code> to cycle them.</p>
+<p>Automatic decisions estimate bass character, not actual artist or genre identity.
+Unknown evidence holds the prior family; vocals above the bass band affect expression only.</p></main></html>

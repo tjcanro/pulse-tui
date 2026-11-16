@@ -1,10 +1,16 @@
 # Pulse TUI
 
-Audio-reactive 3D wireframe terrain, rendered entirely in your terminal. Powered by [CAVA](https://github.com/karlstav/cava), with moving cameras, adjustable mesh density, and purple-to-cyan Braille graphics.
+Audio-reactive 3D wireframe terrain, rendered entirely in your terminal. Powered by [CAVA](https://github.com/karlstav/cava), with stereo terrain, musical camera choreography, crest highlights, a traveling history of the song, and rhythm-guided Braille colors.
 
-![Pulse TUI: an animated wireframe terrain responding to bass, midrange, and treble](docs/media/pulse.gif)
+![The selected cinematic look](docs/media/showcase/cinematic.gif)
 
-*Actual terminal-renderer output, driven by generated PCM audio through CAVA. The GIF runs at 12 fps; the application targets 24 fps by default.*
+*Actual terminal renderer. The smooth reference clips are 24 fps; this inline GIF
+is 12 fps. All showcase recordings use a labeled, deterministic stereo spectrum
+score rather than a captured song.*
+
+[Open the earlier cinematic stages and experiments](docs/media/showcase/index.html) ·
+[Compare all eight looks](docs/media/showcase/comparison.png) ·
+[Preset guide and fallback commands](docs/showcase.md)
 
 ## Quick start
 
@@ -20,6 +26,94 @@ python3 -m venv .venv
 ```
 
 Pulse uses live audio from CAVA. You can also double-click `Pulse.command` in Finder to start it. macOS may request system-audio capture permission for CAVA.
+
+## Looks and fallbacks
+
+**Cinematic is the default**: a restrained musical camera, stereo pulse placement,
+bright crests, trailing terrain history, and buildup/release waves. Quiet passages
+pull back; busier passages move the camera lower and closer. There is no per-beat
+camera shake.
+
+```sh
+./Pulse.command                         # Selected cinematic look
+./Pulse.command --look classic --mono    # Previous geometry and camera
+./Pulse.command --look crests            # Step 1: crest accents only
+./Pulse.command --look memory            # Step 2: crests + terrain history
+./Pulse.command --look ember             # Warm, broad, gentle
+./Pulse.command --look neon              # Sharp, vivid, energetic
+./Pulse.command --look deep-space        # Blue, spacious, slow
+./Pulse.command --look surge             # Preserved stronger-motion experiment
+```
+
+Press **`v`** to cycle all fourteen looks, including the six new color themes. Changing looks applies its camera, palette,
+mesh density, and response defaults; explicit CLI options override those defaults
+at launch. `--no-history`, `--no-highlights`, `--no-sections`, `--mono`, and
+`--camera fixed` let you pare individual effects back. Feature-disable flags stay
+in force when cycling looks. See [the rendering gallery](docs/showcase.md).
+
+## Audio-only character and livelier colors
+
+Auto combines bass character with repeating, broad high-band percussion. It can
+now reach **all nine palettes** instead of relying mainly on Warm and Neon.
+
+| Musical pattern | Favored palette |
+| --- | --- |
+| Rounded acoustic/country-like bass, sparse percussion | Ember |
+| Sustained sub-bass with dense hip-hop-like hats | Crimson |
+| Syncopated pitched bass with repeating Latin-like percussion | Aurora |
+| Regular broad/descending electronic kicks | Neon |
+| Pitched bass with regular pop-like percussion | Blue |
+| Moving bass notes and swung percussion | Gold |
+| Sustained sub-bass with sparser soul-like percussion | Violet |
+| Bright, dense dance-pop-like percussion | Sunset |
+| Very still, diffuse ambient low end | Ice |
+
+A vocal entrance or overall brightness alone does not steer the family. Upper
+percussion must show broad attacks, envelope recurrence, and agreement across
+multiple bars. Confidence, dwell, and slow color blending prevent abrupt jumps.
+The whole spectrum still animates lightness, chroma, and related hues within the
+family. All analysis stays local, with **no metadata or player setup**. These are
+musical-pattern heuristics, not a trained genre classifier; mixed recordings may
+fit more than one profile.
+
+```sh
+./Pulse.command                         # Automatic, cinematic
+./Pulse.command --color-response 1.8    # More lively color movement
+./Pulse.command --palette warm         # Lock family; retain expression
+./Pulse.command --look aurora
+./Pulse.command --look crimson
+./Pulse.command --look gold
+./Pulse.command --look velvet
+./Pulse.command --look sunset
+./Pulse.command --look glacier
+```
+
+There are now **nine palettes and fourteen looks**. `p` cycles palettes; `v`
+cycles looks. Fixed palettes/looks override automatic family selection. For auto,
+use the default Cinematic look or `--palette auto`.
+
+[Watch the four automatic styles](docs/media/styles/index.html) ·
+[See all nine quiet/lively palettes](docs/media/character/atlas.png) ·
+[Read the analysis, controls, and limitations](docs/character.md)
+
+## Cycle through every palette
+
+```sh
+party --palette cycle                    # Smooth, continuous palette loop
+party --palette cycle --cycle-seconds 8  # Faster: eight seconds per family
+```
+
+Cycle visits all nine families in a color-wheel order, easing between them.
+The default is **14 seconds per family** (126 seconds for a full loop); the
+supported range is 2–120 seconds per family. It keeps the current music intensity
+response and continues through silence. Space pauses both the scene and cycle.
+`p` cycles **Auto → Cycle → fixed families**.
+
+Auto also now evaluates a rolling bass window, removes the sustained per-bin
+bed when finding a pulse, and can use periodicity even when individual attacks
+are weak. This fixes cases where short kicks, compressed bass, or a continuous
+bass line caused Auto to stay warm. When a new family is blending in, the HUD
+shows the transition, for example `auto:warm>neon`.
 
 ## Mesh coarseness
 
@@ -56,7 +150,9 @@ If a very large window remains slow, use `[` to reduce mesh density slightly, or
 | Key | Action |
 | --- | --- |
 | `]` / `[` | Finer / coarser mesh |
-| `c` | Cycle cinematic flight, low orbit, overhead, fixed |
+| `c` | Cycle musical choreography, flight, orbit, overhead, fixed |
+| `v` | Cycle looks, including Classic and intermediate stages |
+| `p` | Cycle adaptive colors / warm / blue / neon |
 | Arrow keys | Adjust viewing angle and height |
 | Space | Pause motion; mesh and camera controls remain available |
 | `+` / `-` | Adjust response strength |
@@ -66,9 +162,9 @@ If a very large window remains slow, use `[` to reduce mesh density slightly, or
 
 ## Audio integration
 
-Live mode starts CAVA as a child process using raw, 8-bit, 64-band mono output. It copies the input settings from `~/.config/cava/config` into a temporary configuration. Your CAVA config and iTerm2 settings are not modified. The child process and temporary config are cleaned up on normal exit or Ctrl-C.
+The application starts CAVA as a child process using raw, 8-bit stereo output: 64 bands per channel (128 bytes per frame). It copies the input settings from `~/.config/cava/config` into a temporary configuration. Your CAVA config and iTerm2 settings are not modified. The child process and temporary config are cleaned up on normal exit or Ctrl-C.
 
-Bass, mids, and highs drive different ripple widths and speeds. Sudden increases trigger pulses; sustained frequency amplitudes also shape the surface. This is an onset heuristic, not precise BPM tracking or instrument separation. Live capture errors are reported directly.
+Bass, mids, and highs drive different ripple widths and speeds. Sudden increases trigger pulses; sustained frequency amplitudes also shape the surface. This is an onset heuristic, not precise BPM tracking or instrument separation. Live capture errors are reported directly. Use `--mono` for mono input devices or to disable stereo capture/placement.
 
 ```sh
 ./Pulse.command --input-method coreaudio --source tap
@@ -89,6 +185,9 @@ python3 -m pip install -r requirements.txt
 python3 scripts/build_native.py
 PYTHONPATH=src python3 -m pulse_tui
 python3 tests/test_app.py
+python3 tests/test_colors.py
+python3 tests/test_character.py
+python3 tests/test_cinematic.py
 ```
 
 Set `PULSE_PYTHON=/path/to/python3` to override the Mac launcher's interpreter.
@@ -104,7 +203,7 @@ src/pulse_tui/          Audio, scene, camera, renderer, terminal, and CLI module
 native/wireframe.c     Native rasterizer source
 scripts/               Native build helper
 tests/                 Renderer, audio-stream, and terminal integration checks
-docs/                  Architecture, performance, roadmap, and preview media
+docs/                  Architecture, presets, colors, performance, and rendered gallery
 Pulse.command          macOS launcher
 Makefile               Build, run, and test commands
 pyproject.toml         Python package metadata

@@ -4,10 +4,21 @@ from __future__ import annotations
 import math
 
 import numpy as np
+from .looks import LOOKS
 
-def camera(now, options):
+def camera(now, options, director=None):
     """Return camera position and its right/up/forward viewing axes."""
-    if options.camera == "flight":
+    if options.camera == "choreo":
+        motion = LOOKS[options.look].motion
+        intensity = director.intensity if director else 0.0
+        opening = director.openness(now) if director and options.sections else 0.0
+        pan = director.pan if director and options.stereo else 0.0
+        angle = -.55 + motion * (.22 * math.sin(now * .075) + .07 * math.sin(now * .11))
+        angle += pan * motion * .06
+        radius = 16.3 - 3.8 * intensity * motion + .8 * motion * math.sin(now * .08) + 1.8 * opening
+        y = max(2.7, 8.5 - 5 * intensity * motion + .45 * motion * math.sin(now * .11) + opening)
+        target = np.array([.5 * math.sin(now * .09) * motion, .5, -3.5 + intensity])
+    elif options.camera == "flight":
         angle, radius, y = -.85 + now * .12, 13.2 + 2.5 * math.sin(now * .22), 5.1 + 2.3 * math.sin(now * .27 - .8)
         target = np.array([math.sin(now * .15) * 1.3, .65, math.cos(now * .17) * 1.3])
     else:

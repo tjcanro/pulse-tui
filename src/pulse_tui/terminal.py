@@ -7,7 +7,8 @@ import sys
 import termios
 import tty
 
-from .settings import BG, CAMERAS, RESET
+from .settings import BG, CAMERAS, PALETTES, RESET
+from .looks import LOOKS, apply_look
 
 
 class Terminal:
@@ -75,6 +76,11 @@ def handle_keys(keys, options, scene, now):
             options.density = max(.5, round(options.density - .25, 2))
         elif key == "h":
             options.hud = not options.hud
+        elif key == "p":
+            options.palette = PALETTES[(PALETTES.index(options.palette) + 1) % len(PALETTES)]
+        elif key == "v":
+            names = tuple(LOOKS)
+            apply_look(options, names[(names.index(options.look) + 1) % len(names)])
         elif key in "bmt":
             scene.add(now, "bmt".index(key))
     return True

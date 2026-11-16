@@ -9,6 +9,11 @@ run:
 	PYTHONPATH=src $(PYTHON) -m pulse_tui
 
 test:
+	$(PYTHON) tests/test_colors.py
+	$(PYTHON) tests/test_character.py
+	$(PYTHON) tests/test_styles.py
+	$(PYTHON) tests/test_cycle.py
+	$(PYTHON) tests/test_cinematic.py
 	$(PYTHON) tests/test_app.py
 
 help:

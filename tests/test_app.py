@@ -112,7 +112,8 @@ with tempfile.TemporaryDirectory() as tmp:
    while not stop.is_set():
     samples=np.arange(2048)+phase
     tone=(np.sin(samples*2*np.pi*180/44100)*22000).astype('<i2')
-    data=np.column_stack((tone,tone)).tobytes();pos=0
+    right=(np.sin(samples*2*np.pi*2200/44100)*22000).astype('<i2')
+    data=np.column_stack((tone,right)).tobytes();pos=0
     while pos<len(data) and not stop.is_set():
      try:pos+=os.write(fd,data[pos:])
      except BlockingIOError:time.sleep(.003)
@@ -127,7 +128,9 @@ with tempfile.TemporaryDirectory() as tmp:
    if seq and spectrum.max()>.03:nonzero=True;break
    time.sleep(.02)
   assert nonzero, 'CAVA failed to deliver nonzero spectrum'
-  assert spectrum.shape==(64,)
+  assert spectrum.shape==(2,64)
+  assert spectrum[0].argmax() < spectrum[1].argmax(), 'Stereo frequency order is incorrect'
+  assert np.all(np.max(spectrum,axis=1)>.03), 'Missing a stereo channel'
   assert conf.read_bytes()==before
   print(f'PASS live CAVA/FIFO integration: {seq} frames; peak {spectrum.max():.2f}; source config unchanged')
  finally:
@@ -140,7 +143,7 @@ import pty
 master,slave=pty.openpty()
 fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',35,100,0,0))
 original=termios.tcgetattr(slave)
-p=subprocess.Popen([*CLI,'--input-method','fifo','--source','/dev/zero','--fps','18','--duration','8'],stdin=slave,stdout=slave,stderr=slave)
+p=subprocess.Popen([*CLI,'--palette','blue','--input-method','fifo','--source','/dev/zero','--fps','18','--duration','8'],stdin=slave,stdout=slave,stderr=slave)
 output=bytearray()
 def pump(seconds):
  end=time.monotonic()+seconds
@@ -151,8 +154,11 @@ def pump(seconds):
 deadline=time.monotonic()+5
 while b'LIVE / CAVA' not in output and p.poll() is None and time.monotonic()<deadline:pump(.1)
 assert p.poll() is None, output.decode(errors='replace')[-2000:]
-os.write(master,b'c+]');pump(.6)
+os.write(master,b'c+]p');pump(.6)
 assert b'WIREFRAME' in output and b'LIVE / CAVA' in output
+assert b'blue' in output and b'neon' in output
+os.write(master,b'v');pump(.3)
+assert b'classic' in output
 fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',24,80,0,0));p.send_signal(signal.SIGWINCH)
 pump(.4);os.write(master,b'[ h');pump(.3);os.write(master,b'q');pump(.3)
 p.wait(timeout=3)

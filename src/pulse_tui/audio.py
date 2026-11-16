@@ -17,7 +17,7 @@ from .settings import BARS
 
 
 class RawFrames:
-    """8-bit mono CAVA frames; reads may split or combine arbitrary frames."""
+    """8-bit CAVA frames; reads may split or combine arbitrary frames."""
     def __init__(self, bars=BARS):
         self.bars = bars
         self.pending = bytearray()
@@ -34,9 +34,22 @@ class RawFrames:
 
 
 
+class StereoFrames(RawFrames):
+    """CAVA emits descending left bins, then ascending right bins (reverse=0)."""
+    def __init__(self):
+        super().__init__(BARS * 2)
+
+    def feed(self, data):
+        frame = super().feed(data)
+        if frame is None:
+            return None
+        return np.stack((frame[:BARS][::-1], frame[BARS:]))
+
+
 class CavaInput:
     """Run CAVA with an isolated temporary raw-output config, never edit the user's."""
-    def __init__(self, config, method=None, source=None):
+    def __init__(self, config, method=None, source=None, stereo=True):
+        self.stereo = stereo
         executable = shutil.which("cava")
         if not executable:
             raise RuntimeError("CAVA was not found. Install CAVA to capture audio.")
@@ -45,7 +58,7 @@ class CavaInput:
         for section in ("general", "input", "output", "smoothing"):
             if not self.config.has_section(section):
                 self.config.add_section(section)
-        for key, value in {"bars": str(BARS), "framerate": "60", "autosens": "1",
+        for key, value in {"bars": str(BARS * (2 if stereo else 1)), "framerate": "60", "autosens": "1",
                            "lower_cutoff_freq": "40", "higher_cutoff_freq": "16000",
                            "live-config": "0"}.items():
             self.config.set("general", key, value)
@@ -61,7 +74,8 @@ class CavaInput:
         self.config.remove_section("output")
         self.config.add_section("output")
         for key, value in {"method": "raw", "raw_target": "/dev/stdout", "data_format": "binary",
-                           "bit_format": "8bit", "channels": "mono", "mono_option": "average"}.items():
+                           "bit_format": "8bit", "channels": "stereo" if stereo else "mono",
+                           "mono_option": "average", "reverse": "0", "orientation": "bottom"}.items():
             self.config.set("output", key, value)
         for key, value in {"monstercat": "0", "waves": "0", "noise_reduction": "35"}.items():
             self.config.set("smoothing", key, value)
@@ -77,7 +91,7 @@ class CavaInput:
             self.log.close()
             self.directory.cleanup()
             raise
-        self.latest = np.zeros(BARS)
+        self.latest = np.zeros((2, BARS)) if stereo else np.zeros(BARS)
         self.lock = threading.Lock()
         self.sequence = 0
         self.thread = threading.Thread(target=self._read, daemon=True)
@@ -85,7 +99,7 @@ class CavaInput:
         self.started = time.monotonic()
 
     def _read(self):
-        decoder = RawFrames()
+        decoder = StereoFrames() if self.stereo else RawFrames()
         try:
             while True:
                 data = os.read(self.process.stdout.fileno(), 4096)

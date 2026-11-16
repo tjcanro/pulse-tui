@@ -10,7 +10,7 @@ into text, with no GLSL or GPU graphics API in the application.
 ```mermaid
 flowchart TD
     Audio[System audio] --> CAVA[CAVA: capture and frequency analysis]
-    CAVA --> Reader[audio.py: latest 64 amplitudes]
+    CAVA --> Reader[audio.py: latest stereo amplitudes]
     Reader --> Scene[scene.py: pulses and surface heights]
     Scene --> Renderer[renderer.py: mesh vertices and connectivity]
     Renderer --> Camera[camera.py: viewpoint and perspective projection]
@@ -35,6 +35,14 @@ default display target is 24 frames per second.
 | `app.py` | CLI arguments, startup, frame timing, coordination, and shutdown |
 | `audio.py` | CAVA process, raw frame decoding, and background reader thread |
 | `scene.py` | Energy-change detection, pulses, and animated surface heights |
+| `colors.py` | Audio expression, family blending, and smooth bounded RGB updates |
+| `character.py` | Bass timbre, pitch motion, periodicity, contrast, and stable character decisions |
+| `rhythm.py` | Broad percussion onsets, envelope recurrence, and repeated multi-bar patterns |
+| `style.py` | Bass-anchored musical profiles that make all nine automatic families reachable |
+| `palettes.py` | Nine quiet/lively OKLCH gradients and sRGB conversion |
+| `history.py` | Bounded stereo spectrum history, smoothly sampled toward the horizon |
+| `director.py` | Continuous intensity/tension cues and conservative buildup/release heuristics |
+| `looks.py` | Fourteen presets, including intermediate stages and the classic fallback |
 | `camera.py` | Camera movement, viewing axes, and perspective projection |
 | `renderer.py` | Mesh construction/cache, rasterizer selection, Braille encoding, and HUD |
 | `native.py` | Load our shared library and declare its C function signature |
@@ -51,12 +59,12 @@ file excluded from Git.
 
 `CavaInput` runs the installed `cava` executable with a temporary configuration.
 It inherits the user's input settings, requests 64 logarithmically spaced bands
-from 40 Hz to 16 kHz, and combines stereo into mono. CAVA handles capture, Fourier
+from 40 Hz to 16 kHz, and keeps both stereo channels (or averages them with `--mono`). CAVA handles capture, Fourier
 analysis, and its configured smoothing/autosensitivity. Pulse does not link to
 `cavacore` or receive original PCM samples.
 
 CAVA writes binary spectra to stdout at a requested 60 frames per second. Each
-frame is 64 bytes: one amplitude from 0 to 255 per band. `RawFrames` handles reads
+frame is 128 bytes: two channels of 64 amplitudes from 0 to 255. CAVA emits the left channel in descending frequency order and the right ascending; `StereoFrames` restores ascending order in both. `--mono` requests the previous 64-byte format. `RawFrames` handles reads
 that contain partial or multiple frames and normalizes amplitudes to 0–1 floats.
 
 A background thread drains the pipe. The display loop takes a locked copy of
@@ -74,12 +82,20 @@ procedural, not spatial audio localization.
 `Scene.surface()` evaluates the height at each world-space `(x, z)` position.
 It combines a small base undulation, expanding rings and decaying central mounds
 from recent pulses, and a sustained-spectrum contribution. Frequency groups use
-different ripple speeds and spacing. A second value, heat, controls coloring.
+different ripple speeds and spacing. A second value, heat, controls coloring. Per-band stereo balance moves mids and treble sideways; bass stays closer to center. Mono or identical left/right input stays centered.
 
 This is a height field: one vertical height per point on a horizontal grid. It
 is an artistic audio response, not a physical fluid simulation or instrument
 separator. Pulse ages change each rendered frame, keeping ripples moving between
 new audio frames.
+
+The cinematic looks also sample a bounded history of 192 stereo rows, recorded
+at up to 12 Hz. Bilinear time/frequency interpolation moves previous audio toward
+the horizon without discrete row jumps. A slow musical director tracks energy,
+activity, and stereo balance. It can mark an approximate buildup/release and
+launch a bounded expanding wave. These are visual heuristics, not exact song
+section or BPM recognition. Geometry and camera controls are independent: the
+camera has no beat shake, and rendering has no time-mutating side effects.
 
 ## 3. The grid becomes a 3D mesh
 
@@ -104,7 +120,7 @@ only draws edges.
 
 `camera.py` chooses a viewpoint, transforms vertices into camera coordinates,
 and applies perspective so distant geometry appears smaller. It returns screen
-x, screen y, and camera depth per vertex. Both rasterizers receive these arrays.
+x, screen y, and camera depth per vertex. Both rasterizers receive these arrays. Local surface curvature adds brighter crest heat values, normalized by mesh spacing so density changes do not alter their strength. No extra geometry pass or C ABI change is needed.
 
 ## 4. What the native rasterizer does
 
@@ -158,8 +174,18 @@ One Unicode Braille character represents a 2-column by 4-row pattern: eight
 possible dots. A drawing area of 120 columns by 36 terminal rows therefore uses
 a 240 by 144 dot grid. Finer mesh geometry does not increase terminal resolution.
 
-`Renderer.cells()` packs 2-by-4 blocks into characters and picks one of twelve
-colors from their heat. Each character has one foreground color, so its eight
+`Scene.update()` also feeds an independent color analyzer. `MusicCharacter`
+extends the bass feature extractor with broad high-band percussion: it requires
+at least eight onsets, six seconds of evidence, recurring envelopes, and
+multi-bar pattern agreement before using that context. `style.py` combines the
+context with sub-bass share, sustain, syncopation, pitch motion, and kick shape
+to favor nine musical profiles. Vocal/body loudness alone does not choose a
+family. One shared confidence/dwell/cooldown mechanism stabilizes the result;
+these are heuristic profiles, not identified genres. The full spectrum drives
+faster expression inside the palette, while family transitions take several
+seconds. `Renderer.cells()` packs 2-by-4 blocks into characters
+and heat indices; `Renderer.frame()` looks up twelve base colors plus four tinted crest accents in the current adaptive or fixed palette. See [music-adaptive colors](colors.md) for the wheel,
+features, research, and limitations. Each character has one foreground color, so its eight
 dots cannot have independent colors. `Renderer.frame()` adds ANSI color escapes
 and the optional HUD.
 

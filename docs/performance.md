@@ -27,3 +27,25 @@ make test
 ```
 
 Compare at the same terminal dimensions, camera, mesh density, and FPS target. The tests verify native/Python geometry parity as well as live CAVA framing with generated PCM.
+
+## Cinematic additions
+
+Local native renderer + text-encoding checks at the same 2x mesh, using the
+generated stereo score (milliseconds per frame):
+
+| Terminal cells | Classic | Cinematic |
+| --- | ---: | ---: |
+| 120x40 | 3.59 ms | 6.48 ms |
+| 240x65 | 5.44 ms | 8.29 ms |
+| 360x90 | 7.84 ms | 9.57 ms |
+| 480x110 | 11.56 ms | 10.93 ms |
+
+[Raw measurements](benchmarks/cinematic.json). Recording ran concurrently, so
+small differences are noisy; camera visibility also changes the amount of
+rasterization work. These checks exclude terminal transport and display work.
+They are not guaranteed iTerm2 frame rates.
+
+History stays bounded at 192 stereo rows; interpolation/curvature operate on
+the mesh vertices, not a second full-screen pass. The existing native rasterizer
+and ABI are unchanged. Sixteen palette colors retain bounded ANSI color runs.
+For less motion use Deep Space, Ember, a fixed camera, or the Classic fallback.

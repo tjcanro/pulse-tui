@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Pulse · visual experiments</title>
+<style>body{margin:0;background:#080510;color:#d9d5e9;font:16px/1.6 system-ui,sans-serif}
+main{max-width:1440px;margin:0 auto;padding:40px 24px}h1{font-size:36px;margin:0}h2{color:#b9d9ff}
+.intro{max-width:850px;color:#b2aac6}video,img{width:100%;display:block;background:#080510}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px}
+article{border:1px solid #29213c;padding:16px;border-radius:14px}code{color:#75e4f0}
+.hero{border:1px solid #5d4585;border-radius:16px;padding:20px;margin:24px 0 40px}
+p{margin:12px 0}a{color:#91d7ff}@media(max-width:500px){.grid{grid-template-columns:1fr}}</style>
+<main><h1>Pulse · visual experiments</h1><p class="intro">Actual terminal-renderer output at 24 fps.
+Every clip uses the same deterministic stereo test score, including a buildup and release.
+These silent recordings show generated spectra, not a captured song. Play matching clips from
+the start to compare their motion. No shader or browser graphics support is needed.</p>
+<div class="hero"><h2>Selected default: Cinematic</h2>
+<video controls muted loop playsinline preload="metadata" poster="cinematic.png"><source src="cinematic.mp4" type="video/mp4"></video>
+<p>A deliberate balance: camera motion stays slower than the pulses, with no beat shake.
+The more aggressive experiment is preserved as Surge.</p><code>party</code></div>
+<h2>Stages and alternatives</h2><div class="grid"><article><h2>Cinematic</h2>
+<video controls muted loop playsinline preload="none" poster="cinematic.png"><source src="cinematic.mp4" type="video/mp4"></video>
+<p>Recommended: history, stereo, crests, musical camera, and section waves.</p><code>party --look cinematic</code></article>
+<article><h2>Classic</h2>
+<video controls muted loop playsinline preload="none" poster="classic.png"><source src="classic.mp4" type="video/mp4"></video>
+<p>Before: the original moving wireframe with adaptive colors.</p><code>party --look classic</code></article>
+<article><h2>Crests</h2>
+<video controls muted loop playsinline preload="none" poster="crests.png"><source src="crests.mp4" type="video/mp4"></video>
+<p>Step 1: bright crest accents and quieter valley wires.</p><code>party --look crests</code></article>
+<article><h2>Memory</h2>
+<video controls muted loop playsinline preload="none" poster="memory.png"><source src="memory.mp4" type="video/mp4"></video>
+<p>Step 2: the previous sixteen seconds travel toward the horizon.</p><code>party --look memory</code></article>
+<article><h2>Ember</h2>
+<video controls muted loop playsinline preload="none" poster="ember.png"><source src="ember.mp4" type="video/mp4"></video>
+<p>Softer amber/red terrain, broad ripples, and a gentler camera.</p><code>party --look ember</code></article>
+<article><h2>Neon</h2>
+<video controls muted loop playsinline preload="none" poster="neon.png"><source src="neon.mp4" type="video/mp4"></video>
+<p>Sharper magenta/cyan ridges, finer geometry, and a closer camera.</p><code>party --look neon</code></article>
+<article><h2>Deep-Space</h2>
+<video controls muted loop playsinline preload="none" poster="deep-space.png"><source src="deep-space.mp4" type="video/mp4"></video>
+<p>Blue, spacious, and slow: longer trails with a restrained camera.</p><code>party --look deep-space</code></article>
+<article><h2>Surge</h2>
+<video controls muted loop playsinline preload="none" poster="surge.png"><source src="surge.mp4" type="video/mp4"></video>
+<p>Experiment: stronger release waves and more aggressive camera movement.</p><code>party --look surge</code></article></div>
+<p>Press <code>v</code> in the running app to cycle all looks. <code>p</code> cycles colors;
+<code>c</code> cycles cameras. The source snapshot before these additions is preserved separately.</p>
+<p><a href="comparison.png">Open the full contact sheet</a> · <a href="cinematic.gif">Open the animated GIF</a></p></main></html>
