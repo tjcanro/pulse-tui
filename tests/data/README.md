@@ -69,3 +69,36 @@ onset/repetition features survive actual FFT banding, autosensitivity, smoothing
 and frame polling. These names describe designed instrumentation; the fixture is
 **not a collection of songs, genre training data, or a real-song accuracy test**.
 Realtime capture timing can vary slightly when regenerating the reference.
+
+## Acoustic/country false-positive reference
+
+`acoustic_reference.npz` adds three procedural acoustic-bass negatives with the
+same accompaniment and busy high-passed noise hats as the Latin-like positive
+above. CAVA capture settings, timing, and array dtypes are unchanged. The complete
+reproduction script is:
+
+```sh
+python3 scripts/capture_acoustic_reference.py
+```
+
+The bass changes between 82, 110, 92, 75, 110, and 92 Hz. It follows these attack
+patterns in a four-second phrase:
+
+- `omitted`: 0, 0.5, 1, 2, 3, 3.5 seconds (main-beat notes with omissions).
+- `pickup`: 0, 1, 2, 3, 3.75 seconds (one brief anticipation).
+- `humanized`: the omitted pattern with up to ±35 ms deterministic timing
+  variation. This should not be interpreted as a new genre.
+
+All three must remain Warm throughout the reference, even though their bass
+intervals are irregular, notes change, and upper percussion qualifies. This
+catches Aurora overgeneralization and false swing caused by missed CAVA hat
+onsets. The adjacent `scripts/acoustic_score.py` supplies corresponding idealized
+spectra at several tempos/frame rates/volumes, also with a vocal entrance.
+
+The existing idealized swing positive still reaches Gold. Frame sampling,
+smoothing, and missed attacks can obscure real swing timing, so the new guard is
+deliberately conservative: a genuine shuffle may fit another profile when its
+alternation is not visible in CAVA's coarse output.
+
+These are instrumentation recipes passed through CAVA, not recorded songs or a
+real-song genre evaluation. No audio is played or system-audio device opened.

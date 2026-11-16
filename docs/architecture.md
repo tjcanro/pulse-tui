@@ -37,7 +37,7 @@ default display target is 24 frames per second.
 | `scene.py` | Energy-change detection, pulses, and animated surface heights |
 | `colors.py` | Audio expression, family blending, and smooth bounded RGB updates |
 | `character.py` | Bass timbre, pitch motion, periodicity, contrast, and stable character decisions |
-| `rhythm.py` | Broad percussion onsets, envelope recurrence, and repeated multi-bar patterns |
+| `rhythm.py` | Broad percussion onsets, envelope recurrence, bass/subdivision timing, and phrase/swing evidence |
 | `style.py` | Bass-anchored musical profiles that make all nine automatic families reachable |
 | `palettes.py` | Nine quiet/lively OKLCH gradients and sRGB conversion |
 | `history.py` | Bounded stereo spectrum history, smoothly sampled toward the horizon |

@@ -46,12 +46,12 @@ weak assessment.
 
 | Bass and qualified percussion | Favored family | HUD style |
 | --- | --- | --- |
-| Rounded/pitched bass, sparse or unqualified percussion | Ember (`warm`) | rounded / mellow |
+| Rounded/pitched bass without stronger offbeat, kick, or swing evidence | Ember (`warm`) | rounded / mellow |
 | Sustained sub-bass, dense hats relative to bass attacks | Crimson | hip-hop-like |
-| Syncopated pitched bass against repeating percussion | Aurora | latin-like |
+| Repeated offbeat bass phrases locked to percussion subdivisions | Aurora | latin-like |
 | Regular broad/descending kicks | Neon | electronic-like |
 | Pitched bass and regular percussion | Blue | pop-like |
-| Moving bass notes with swung percussion | Gold | swing/funk-like |
+| Moving bass notes with alternating short/long percussion | Gold | swing/funk-like |
 | Sustained sub-bass and sparser percussion | Violet | soul-like |
 | Regular bass with bright, dense percussion subdivisions | Sunset | bright dance-pop |
 | Very still, diffuse low-end bed | Ice | ambient-like |
@@ -64,6 +64,23 @@ qualified percussion attacks, **not the highs-to-vocals energy ratio**. Ice's
 stillness rule uses bass, so a new melodic voice does not displace it. With no
 qualified percussion, the original bass-only rounded/driving/flowing/sustained/
 rough scores remain a fallback.
+
+Aurora uses a stricter relationship check: **irregularity is not automatically
+syncopation**. A skipped bass note or occasional pickup can make a country or
+acoustic accompaniment irregular too. The analyzer fits an upper-percussion
+subdivision grid, checks that bass attacks share its timing, and requires
+substantial attacks on both alternating grid phases in both halves of the recent
+window. The bass phrase must also repeat, using up to sixteen seconds of bounded
+onset history and correcting for coincidental matches in busy patterns. At least
+six recent bass attacks are needed. This is a relative timing heuristic; no
+actual musical downbeat is assumed, and the bass/percussion latency offset is
+free. If those checks fail, the strong rounded-bass fallback can stay Warm even
+with busy drums.
+
+Gold's timing check also requires short and long percussion intervals to
+alternate consistently. Interval variance alone is insufficient: missed hi-hat
+detections and fills can inflate it without any swing. This prevents a rejected
+Aurora guess from simply sending the same acoustic mix to Gold instead.
 
 One shared selector requires a score of at least 0.62, a lead of 0.10, candidate
 evidence lasting 1.5 seconds, and six seconds between changes. Percussion-based
@@ -134,13 +151,17 @@ with Space/pause.
 ## Implementation and evidence
 
 - `character.py`: bass features and the shared stable decision mechanism.
-- `rhythm.py`: qualified upper-band percussion and repetition checks.
+- `rhythm.py`: qualified upper-band percussion and repetition checks. It also
+  measures bass/subdivision timing, offbeat balance, repeated bass
+  phrases, and short/long percussion alternation for the more selective profiles.
 - `style.py`: musical profiles supplementing the bass-only fallback.
 - `palettes.py`: nine quiet/lively gradients and gamut-safe sRGB conversion.
 - `colors.py`: expression, family blending, and bounded RGB updates.
 - `tests/test_styles.py`: nine reachable families, all-family vocal entrances,
   several tempos/frame rates/volumes, random speech-like bursts, brief fills,
   track changes, and actual CAVA output for four procedural instrument mixtures.
+  Acoustic mixtures with omitted notes, pickups, and humanized timing must remain
+  Warm despite busy percussion, including after an Aurora passage.
 - `tests/test_character.py`: bass distinctions, weak/phase-shifted kicks, voice
   invariance, compressed mixes, and earlier real-CAVA bass regressions.
 
@@ -153,6 +174,9 @@ regression tools, not a labeled song corpus or proof of genre accuracy. See the
 Run `make test`. `scripts/render_styles.py` regenerates the current comparison;
 `scripts/capture_style_reference.py` regenerates the new CAVA fixture without
 playing audio. Pillow/ffmpeg are optional development tools for previews only.
+`scripts/capture_acoustic_reference.py` regenerates the acoustic negatives, also
+through silent FIFOs. Sampling and missed attacks can hide real swing; without
+clear alternation evidence a shuffle may fit another profile.
 Earlier [bass comparison](media/character/index.html) and
 [cinematic experiments](media/showcase/index.html) remain available as historical
 renderings. The CAVA capture path, terminal geometry, and native rasterizer ABI

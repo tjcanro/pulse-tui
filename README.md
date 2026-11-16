@@ -60,7 +60,7 @@ now reach **all nine palettes** instead of relying mainly on Warm and Neon.
 | --- | --- |
 | Rounded acoustic/country-like bass, sparse percussion | Ember |
 | Sustained sub-bass with dense hip-hop-like hats | Crimson |
-| Syncopated pitched bass with repeating Latin-like percussion | Aurora |
+| Repeating offbeat bass locked to Latin-like percussion subdivisions | Aurora |
 | Regular broad/descending electronic kicks | Neon |
 | Pitched bass with regular pop-like percussion | Blue |
 | Moving bass notes and swung percussion | Gold |
@@ -71,6 +71,11 @@ now reach **all nine palettes** instead of relying mainly on Warm and Neon.
 A vocal entrance or overall brightness alone does not steer the family. Upper
 percussion must show broad attacks, envelope recurrence, and agreement across
 multiple bars. Confidence, dwell, and slow color blending prevent abrupt jumps.
+Aurora also requires a repeating bass phrase with substantial offbeat activity;
+omitted notes or a brief pickup in country/acoustic bass are insufficient. Gold
+requires alternating short/long percussion, rather than irregular timing from
+missed hi-hat detections. Rounded acoustic bass can therefore stay Warm even with
+busy drums.
 The whole spectrum still animates lightness, chroma, and related hues within the
 family. All analysis stays local, with **no metadata or player setup**. These are
 musical-pattern heuristics, not a trained genre classifier; mixed recordings may

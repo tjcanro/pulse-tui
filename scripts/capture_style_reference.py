@@ -39,8 +39,8 @@ def pcm(kind):
     audio = np.clip(audio, -1, 1) * 24000
     return np.repeat(audio.astype('<i2')[:, None], 2, axis=1).tobytes()
 
-def capture(kind):
-    data = pcm(kind)
+def capture(kind, make_pcm=pcm):
+    data = make_pcm(kind)
     with tempfile.TemporaryDirectory(prefix='pulse-styles-') as tmp:
         fifo = Path(tmp) / 'pcm'
         os.mkfifo(fifo)

@@ -17,7 +17,10 @@ class RhythmContext:
         self.repeat = self.high_rate = self.percussion = 0.0
         self.high_pulse = 0.0
         self.sub_ratio = self.note_motion = self.syncopation = 0.0
-        self.swing = self.brightness = 0.0
+        self.swing = self.swing_lock = self.brightness = 0.0
+        self.subdivision_lock = self.bass_lock = 0.0
+        self.offbeat = self.bass_repeat = 0.0
+        self._bass_events = deque(maxlen=128)
 
     def update(self, spectrum, now, dt):
         top = spectrum[44:]
@@ -45,6 +48,8 @@ class RhythmContext:
         was_ready = self.ready
         self.ready = False
         self.repeat = self.percussion = self.high_pulse = 0.0
+        self.subdivision_lock = self.bass_lock = 0.0
+        self.offbeat = self.bass_repeat = 0.0
         rows = np.array([r for r in self.rows if r[0] >= now - 10])
         low = np.array([r for r in bass._rows if r[0] >= now - 10])
         if len(rows) < 24 or len(low) < 24:
@@ -62,6 +67,11 @@ class RhythmContext:
         self.brightness = float(np.median([event[2] for event in self.events]))
         intervals = np.diff(events)
         self.swing = float(intervals.std() / max(.01, intervals.mean()))
+        # Missing detections and fills make interval lengths vary too. Swing
+        # needs a persistent short/long alternation, not variance by itself.
+        early = intervals[:-1]-intervals[:-1].mean()
+        late = intervals[1:]-intervals[1:].mean()
+        self.swing_lock = max(0.0, float(-early@late / max(1e-12, np.linalg.norm(early)*np.linalg.norm(late))))
         grid = np.arange(rows[0, 0], now, 1/24)
         envelope = np.interp(grid, rows[:, 0], rows[:, 1])
         envelope -= envelope.mean()
@@ -103,6 +113,54 @@ class RhythmContext:
         # replacing an established profile with the bass-only warm prior.
         self.ready = (self.repeat >= (.25 if was_ready else .35)
                       and self.percussion >= (.43 if was_ready else .50))
+        if self.ready:
+            self._bass_relationship(bass, events, now)
+
+    def _bass_relationship(self, bass, events, now):
+        """Distinguish a repeating offbeat bass part from generic irregularity.
+
+        A missed note or a pickup makes inter-onset spacing irregular too. For
+        Latin-like evidence, bass must lock to percussion subdivisions, occupy
+        both alternating phases, and repeat a phrase. Absolute phase is free:
+        CAVA's bass/high analysis windows can have different latency.
+        """
+        attacks = np.array([event[0] for event in bass.attacks])
+        for event in attacks:
+            if not self._bass_events or event > self._bass_events[-1]:
+                self._bass_events.append(float(event))
+        while self._bass_events and self._bass_events[0] < now-16:
+            self._bass_events.popleft()
+        if len(attacks) < 6:
+            return
+        typical = float(np.median(np.diff(events)))
+        units = np.linspace(.8*typical, 1.2*typical, 81)
+        coherence = np.abs(np.exp(2j*np.pi*(events-events[0])[:, None]/units).mean(axis=0))
+        best = int(coherence.argmax())
+        unit = float(units[best])
+        self.subdivision_lock = float(coherence[best])
+        phases = (attacks-attacks[0])/unit
+        self.bass_lock = float(abs(np.exp(2j*np.pi*phases).mean()))
+        middle = len(phases)//2
+        self.offbeat = min(float((1-abs(np.exp(1j*np.pi*half).mean()))/2)
+                           for half in (phases[:middle], phases[middle:]))
+        # Search phrases of 8–16 detected subdivisions. They must recur in both
+        # halves, and coincidence is corrected for occupied subdivision slots.
+        chance = min(.85, bass.onset_rate*unit)
+        phrase = np.array(self._bass_events)
+        for count in range(8, 17):
+            period = unit*count
+            source = phrase[phrase <= now-period-.1]
+            if len(source) < 4:
+                continue
+            targets = source+period
+            right = np.searchsorted(phrase, targets).clip(0, len(phrase)-1)
+            left = (right-1).clip(0, len(phrase)-1)
+            error = np.minimum(abs(phrase[right]-targets), abs(phrase[left]-targets))
+            matches = error <= max(.05, min(.09, unit*.35))
+            half = len(matches)//2
+            observed = min(float(matches[:half].mean()), float(matches[half:].mean()))
+            repeat = float(np.clip((observed-chance)/(1-chance), 0, 1))
+            self.bass_repeat = max(self.bass_repeat, repeat)
 
     def _onset_repeat(self, events, period, now):
         source = events[events <= now-period-.1]

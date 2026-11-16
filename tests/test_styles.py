@@ -9,6 +9,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/'src'), str(ROOT/'scripts')]
 from style_score import style_score, vocal_score
+from acoustic_score import acoustic_score, PATTERNS
 from pulse_tui.colors import AdaptiveColors
 from pulse_tui.palettes import PALETTE_LABS
 
@@ -27,6 +28,40 @@ def observe(style, fps=24, offset=0, volume=1, duration=26):
 
 
 class StyleTests(unittest.TestCase):
+    def test_acoustic_bass_omissions_and_pickups_stay_warm_with_busy_hats(self):
+        # These all have irregular intervals, changing notes, and the same
+        # repeating wide high percussion as the Latin positive fixture.
+        for variant in PATTERNS:
+            for fps, speed, volume in ((12, .7, 1), (24, 1, 1), (60, 1.3, .35)):
+                colors = AdaptiveColors()
+                for frame in range(fps*36):
+                    now = frame/fps
+                    spectrum = acoustic_score(now*speed, variant)*volume
+                    if now >= 18:
+                        spectrum += vocal_score(now)
+                    colors.update(spectrum, now, 1/fps)
+                    self.assertEqual(colors.character.family, 'warm', (variant, fps, now))
+                self.assertTrue(colors.character.rhythm.ready)
+                self.assertEqual(colors.name, 'warm')
+
+    def test_a_latin_passage_can_return_to_warm_despite_continuing_hats(self):
+        colors = observe('latin')
+        self.assertEqual(colors.name, 'aurora')
+        for frame in range(24*32):
+            now = frame/24
+            colors.update(acoustic_score(now, 'omitted'), 26+now, 1/24)
+        self.assertEqual(colors.name, 'warm')
+
+    def test_actual_cava_acoustic_bass_with_busy_hats_stays_warm(self):
+        with np.load(ROOT/'tests/data/acoustic_reference.npz') as reference:
+            for variant in PATTERNS:
+                colors = AdaptiveColors()
+                for now, frame in zip(reference[variant+'_times'], reference[variant+'_frames']):
+                    colors.update(frame.astype(float)/255, float(now), 1/24)
+                    self.assertEqual(colors.character.family, 'warm', (variant, now))
+                self.assertEqual(colors.name, 'warm')
+                self.assertTrue(colors.character.rhythm.ready)
+
     def test_all_nine_families_are_reachable_from_musical_patterns(self):
         self.assertEqual(set(EXPECTED.values()), set(PALETTE_LABS))
         for style, family in EXPECTED.items():
