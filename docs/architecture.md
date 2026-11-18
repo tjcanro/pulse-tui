@@ -11,8 +11,12 @@ into text, with no GLSL or GPU graphics API in the application.
 flowchart TD
     Audio[System audio] --> CAVA[CAVA: capture and frequency analysis]
     CAVA --> Reader[audio.py: latest stereo amplitudes]
-    Reader --> Scene[scene.py: pulses and surface heights]
-    Scene --> Renderer[renderer.py: mesh vertices and connectivity]
+    Reader --> Scene[scene.py: shared audio, colors and pulses]
+    Scene --> Geometry{Selected scene}
+    Geometry -->|Terrain| Height[scene.py: terrain height field]
+    Geometry -->|Ribbons / Orbit / Filaments| Spatial[spatial.py: cached scene geometry]
+    Height --> Renderer[renderer.py: vertices, edges and triangles]
+    Spatial --> Renderer
     Renderer --> Camera[camera.py: viewpoint and perspective projection]
     Camera --> Choice{Native library available?}
     Choice -->|Yes| Bridge[native.py: ctypes call]
@@ -35,6 +39,12 @@ default display target is 24 frames per second.
 | `app.py` | CLI arguments, startup, frame timing, coordination, and shutdown |
 | `audio.py` | CAVA process, raw frame decoding, and background reader thread |
 | `scene.py` | Energy-change detection, pulses, and animated surface heights |
+| `spatial.py` | Single cached geometry provider for the selected spatial scene |
+| `geometry.py` | Shared vertex/edge/triangle data, audio history sampling, and travelling accents |
+| `curves.py` | Spatial spline interpolation and cached transported ribbon/current frames |
+| `ribbons.py` | Tapered, interwoven bands with travelling curves, ribs, edge marks, and twists |
+| `orbit.py` | Dense central arcs and fading outward-expanding fragments |
+| `filaments.py` | Finite strands streaming through S-shaped currents with fading heads/tails |
 | `colors.py` | Audio expression, family blending, and smooth bounded RGB updates |
 | `character.py` | Bass timbre, pitch motion, periodicity, contrast, and stable character decisions |
 | `rhythm.py` | Broad percussion onsets, envelope recurrence, bass/subdivision timing, and phrase/swing evidence |

@@ -8,6 +8,8 @@ from .looks import LOOKS
 
 def camera(now, options, director=None):
     """Return camera position and its right/up/forward viewing axes."""
+    if options.scene != "terrain":
+        return spatial_camera(now, options, director)
     if options.camera == "choreo":
         motion = LOOKS[options.look].motion
         intensity = director.intensity if director else 0.0
@@ -33,6 +35,34 @@ def camera(now, options, director=None):
     right /= np.linalg.norm(right)
     up = np.cross(right, forward)
     return eye, right, up, forward
+
+
+def spatial_camera(now, options, director=None):
+    """Slow views into layered forms; the orbital scene retains a central focus."""
+    style = LOOKS[options.look]
+    motion = style.motion
+    intensity = director.intensity if director else 0
+    pan = director.pan if director and options.stereo else 0
+    if options.camera == "choreo":
+        angle = .10*math.sin(now*.055)*motion + pan*.035*motion
+        radius = 23.5-1.4*intensity*motion+.45*math.sin(now*.07)*motion
+        height = 1.2*math.sin(now*.065)*motion
+    elif options.camera == "flight":
+        angle, radius, height = .16*math.sin(now*.07), 22+.7*math.sin(now*.09), 2*math.sin(now*.08)
+    elif options.camera == "orbit":
+        angle, radius, height = now*.055, 24, 2.4*math.sin(now*.05)
+    elif options.camera == "overhead":
+        angle, radius, height = .1, 4, 25
+    else:
+        angle, radius, height = 0, 23.5, 0
+    angle += options.yaw
+    eye = np.array([math.sin(angle)*radius, height+options.elevation, math.cos(angle)*radius])
+    target = np.array([0.0, 0.0, 0.0])
+    forward = target-eye
+    forward /= np.linalg.norm(forward)
+    right = np.cross(forward, [0, 1, 0])
+    right /= np.linalg.norm(right)
+    return eye, right, np.cross(right, forward), forward
 
 
 

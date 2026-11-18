@@ -1,0 +1,44 @@
+{
+  "scope": "3-second real CAVA /dev/zero runs through a drained PTY; not iTerm display timing",
+  "results": [
+    {
+      "scene": "ribbons",
+      "columns": 360,
+      "rows": 90,
+      "reported_fps": [
+        0,
+        23,
+        21,
+        20
+      ],
+      "output_bytes": 4493652,
+      "restored": true
+    },
+    {
+      "scene": "orbit",
+      "columns": 360,
+      "rows": 90,
+      "reported_fps": [
+        23,
+        21,
+        22,
+        20
+      ],
+      "output_bytes": 3881860,
+      "restored": true
+    },
+    {
+      "scene": "filaments",
+      "columns": 360,
+      "rows": 90,
+      "reported_fps": [
+        0,
+        23,
+        22,
+        21
+      ],
+      "output_bytes": 4919317,
+      "restored": true
+    }
+  ]
+}

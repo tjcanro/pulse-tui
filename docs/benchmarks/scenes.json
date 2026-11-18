@@ -1,0 +1,150 @@
+{
+  "scope": "Geometry, native rasterization and ANSI encoding; excludes audio update, terminal transport and iTerm redraw",
+  "measurements": [
+    {
+      "scene": "terrain",
+      "columns": 120,
+      "rows": 40,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 5929,
+      "edges": 17480,
+      "mean_ms": 4.79,
+      "p95_ms": 5.1
+    },
+    {
+      "scene": "ribbons",
+      "columns": 120,
+      "rows": 40,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 15745,
+      "edges": 16860,
+      "mean_ms": 6.23,
+      "p95_ms": 10.88
+    },
+    {
+      "scene": "orbit",
+      "columns": 120,
+      "rows": 40,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 7776,
+      "edges": 8208,
+      "mean_ms": 2.12,
+      "p95_ms": 2.39
+    },
+    {
+      "scene": "filaments",
+      "columns": 120,
+      "rows": 40,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 18921,
+      "edges": 18802,
+      "mean_ms": 15.5,
+      "p95_ms": 25.47
+    },
+    {
+      "scene": "terrain",
+      "columns": 360,
+      "rows": 90,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 5929,
+      "edges": 17480,
+      "mean_ms": 8.46,
+      "p95_ms": 9.66
+    },
+    {
+      "scene": "ribbons",
+      "columns": 360,
+      "rows": 90,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 15745,
+      "edges": 16860,
+      "mean_ms": 8.45,
+      "p95_ms": 9.02
+    },
+    {
+      "scene": "orbit",
+      "columns": 360,
+      "rows": 90,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 7776,
+      "edges": 8208,
+      "mean_ms": 4.19,
+      "p95_ms": 6.6
+    },
+    {
+      "scene": "filaments",
+      "columns": 360,
+      "rows": 90,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 18921,
+      "edges": 18802,
+      "mean_ms": 16.6,
+      "p95_ms": 18.09
+    },
+    {
+      "scene": "terrain",
+      "columns": 480,
+      "rows": 110,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 5929,
+      "edges": 17480,
+      "mean_ms": 10.91,
+      "p95_ms": 12.36
+    },
+    {
+      "scene": "ribbons",
+      "columns": 480,
+      "rows": 110,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 15745,
+      "edges": 16860,
+      "mean_ms": 11.83,
+      "p95_ms": 14.86
+    },
+    {
+      "scene": "orbit",
+      "columns": 480,
+      "rows": 110,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 7776,
+      "edges": 8208,
+      "mean_ms": 5.75,
+      "p95_ms": 6.79
+    },
+    {
+      "scene": "filaments",
+      "columns": 480,
+      "rows": 110,
+      "density": 2,
+      "native": true,
+      "frames": 72,
+      "vertices": 18921,
+      "edges": 18802,
+      "mean_ms": 25.83,
+      "p95_ms": 51.55
+    }
+  ],
+  "revision": "Ribbons: tapered widths, interwoven paths, travelling waves and stable bent frames; unchanged Terrain/Orbit/Filaments measurements retained"
+}

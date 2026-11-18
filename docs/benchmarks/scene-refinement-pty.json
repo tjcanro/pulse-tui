@@ -1,0 +1,37 @@
+{
+  "scope": "Drained PTY, silent CAVA input; not iTerm display timing",
+  "results": [
+    {
+      "scene": "filaments",
+      "columns": 360,
+      "rows": 90,
+      "reported_fps": [
+        0,
+        22,
+        22,
+        23,
+        22,
+        23
+      ],
+      "output_bytes": 12559350,
+      "restored": true
+    },
+    {
+      "scene": "ribbons",
+      "columns": 360,
+      "rows": 90,
+      "reported_fps": [
+        0,
+        20,
+        20,
+        22,
+        23,
+        22,
+        23,
+        22
+      ],
+      "output_bytes": 15416160,
+      "restored": true
+    }
+  ]
+}

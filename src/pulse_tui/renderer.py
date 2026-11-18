@@ -9,6 +9,8 @@ from .camera import camera, project
 from .native import NativeRasterizer
 from .rasterizer import rasterize
 from .looks import LOOKS
+from .settings import SCENE_LABELS
+from .spatial import SpatialScenes
 
 
 class Renderer:
@@ -22,6 +24,8 @@ class Renderer:
         self.mesh_n = 0
         self.mesh_x = self.mesh_z = None
         self.edges = self.faces = None
+        self.spatial = SpatialScenes()
+        self.vertex_count = self.edge_count = 0
 
     def mesh(self, density):
         """Cache horizontal vertices, triangle triples, and wire-edge pairs."""
@@ -45,28 +49,37 @@ class Renderer:
         width, height = cols * 2, rows * 4
         aspect = cols / max(1, rows * 2)  # Typical terminal cell is twice as tall as wide.
         cam = camera(now, options, scene.director)
-        self.mesh(options.density)
-        x, y, z, heat, _ = scene.surface(self.mesh_x, self.mesh_z, now, options.gain, options)
-        style = LOOKS[options.look]
-        if style.crests and options.highlights:
-            grid = y.reshape(self.mesh_n, self.mesh_n)
-            padded = np.pad(grid, 1, mode="edge")
-            curvature = np.maximum(0, 4 * grid - padded[1:-1, :-2] - padded[1:-1, 2:]
-                                   - padded[:-2, 1:-1] - padded[2:, 1:-1])
-            # Normalize for mesh spacing so changing density keeps crest brightness.
-            curvature /= (36 / (self.mesh_n - 1)) ** 2
-            crest = np.clip(curvature.ravel() * .22, 0, 1) * np.clip((y - .15) / .8, 0, 1)
-            heat = np.minimum(1.45, heat + crest * .65 * style.crests)
+        if options.scene == "terrain":
+            self.mesh(options.density)
+            x, y, z, heat, _ = scene.surface(self.mesh_x, self.mesh_z, now, options.gain, options)
+            style = LOOKS[options.look]
+            if style.crests and options.highlights:
+                grid = y.reshape(self.mesh_n, self.mesh_n)
+                padded = np.pad(grid, 1, mode="edge")
+                curvature = np.maximum(0, 4 * grid - padded[1:-1, :-2] - padded[1:-1, 2:]
+                                       - padded[:-2, 1:-1] - padded[2:, 1:-1])
+                # Normalize for mesh spacing so changing density keeps crest brightness.
+                curvature /= (36 / (self.mesh_n - 1)) ** 2
+                crest = np.clip(curvature.ravel() * .22, 0, 1) * np.clip((y - .15) / .8, 0, 1)
+                heat = np.minimum(1.45, heat + crest * .65 * style.crests)
+            edges, faces = self.edges, self.faces
+        else:
+            geometry = self.spatial.evaluate(scene, now, options)
+            x, y, z = geometry.vertices.T
+            heat, edges, faces = geometry.heat, geometry.edges, geometry.faces
         px, py, depth = project(x, y, z, cam, width, height, aspect)
+        if options.scene != "terrain":
+            heat = heat - np.maximum(0, depth-19)*.018
+        self.vertex_count, self.edge_count = len(x), len(edges)
         if self.native:
             heatmap = np.full(width * height, -1.0)
             depthmap = np.empty(width * height)
             self.native.render(np.ascontiguousarray(px), np.ascontiguousarray(py),
                                np.ascontiguousarray(depth), np.ascontiguousarray(heat),
-                               self.faces, len(self.faces), self.edges, len(self.edges),
+                               faces, len(faces), edges, len(edges),
                                width, height, depthmap, heatmap)
             return heatmap.reshape(height, width)
-        return rasterize(px, py, depth, heat, self.faces, self.edges, width, height)
+        return rasterize(px, py, depth, heat, faces, edges, width, height)
 
     @staticmethod
     def cells(dots):
@@ -99,7 +112,7 @@ class Renderer:
         lines = []
         if options.hud:
             state = "PAUSED" if options.paused else source
-            lines.append(escapes[10] + f" PULSE WIREFRAME | {options.look} | {state} | {color_label} | {scene.director.section} | {fps:.0f}fps | {'native' if self.native else 'python'}"[:cols].ljust(cols))
+            lines.append(escapes[10] + f" PULSE WIREFRAME | {SCENE_LABELS[options.scene]} | {options.look} | {state} | {color_label} | {scene.director.section} | {fps:.0f}fps | {'native' if self.native else 'python'}"[:cols].ljust(cols))
             meters = []
             for label, v in zip(("BASS", "MIDS", "HIGH"), scene.levels):
                 n = min(8, int(v * 10))
@@ -122,8 +135,10 @@ class Renderer:
             lines.append("".join(escapes[rowcolors[start]] + row[start:end]
                                  for start, end in zip(boundaries, boundaries[1:])))
         if options.hud:
-            lines.append(escapes[3] + " v look  p colors  c camera  [/] mesh  SPACE pause  +/- energy"[:cols].ljust(cols))
-            lines.append(escapes[3] + (f" arrows view  b/m/t pulse  h HUD  q quit   Energy {options.gain:.1f}x  Mesh {options.density:.2g}x ({self.mesh_n}x{self.mesh_n})")[:cols].ljust(cols))
+            lines.append(escapes[3] + " s scene  v look  p colors  c camera  [/] detail  SPACE pause  +/- energy"[:cols].ljust(cols))
+            detail = (f"Mesh {options.density:.2g}x ({self.mesh_n}x{self.mesh_n})" if options.scene == "terrain"
+                      else f"Detail {options.density:.2g}x ({self.vertex_count:,} vertices)")
+            lines.append(escapes[3] + (f" arrows view  b/m/t pulse  h HUD  q quit   Energy {options.gain:.1f}x  {detail}")[:cols].ljust(cols))
         return lines
 
     @staticmethod
