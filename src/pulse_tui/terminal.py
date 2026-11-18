@@ -7,7 +7,7 @@ import sys
 import termios
 import tty
 
-from .settings import BG, CAMERAS, PALETTES, RESET
+from .settings import BG, CAMERAS, PALETTES, RESET, SCENES
 from .looks import LOOKS, apply_look
 
 
@@ -81,6 +81,9 @@ def handle_keys(keys, options, scene, now):
         elif key == "v":
             names = tuple(LOOKS)
             apply_look(options, names[(names.index(options.look) + 1) % len(names)])
+        elif key in "sS":
+            step = 1 if key == "s" else -1
+            options.scene = SCENES[(SCENES.index(options.scene) + step) % len(SCENES)]
         elif key in "bmt":
             scene.add(now, "bmt".index(key))
     return True

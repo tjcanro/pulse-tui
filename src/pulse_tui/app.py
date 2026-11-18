@@ -7,7 +7,7 @@ import shutil
 import sys
 import time
 
-from .settings import CAMERAS, PALETTES, Options
+from .settings import CAMERAS, PALETTES, SCENES, Options
 from .looks import LOOKS
 
 try:
@@ -26,6 +26,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--python-renderer", action="store_true", help="Force the portable Python renderer for comparison")
     parser.add_argument("--look", choices=tuple(LOOKS), default="cinematic", help="Visual preset; classic preserves the previous look")
+    parser.add_argument("--scene", choices=SCENES, default="terrain", help="Geometry; press s to cycle scenes (default terrain)")
     parser.add_argument("--camera", choices=CAMERAS, help="Override the look's camera")
     parser.add_argument("--palette", choices=PALETTES, help="Override adaptive colors or the look's palette")
     parser.add_argument("--color-response", type=float, default=1.35, help="Color expressiveness, 0.5–2 (default 1.35)")
@@ -43,6 +44,7 @@ def main(argv=None):
     parser.add_argument("--duration", type=float, default=0, help="Exit after this many wall-clock seconds")
     args = parser.parse_args(argv)
     options = Options.for_look(args.look)
+    options.scene = args.scene
     for name in ("camera", "palette", "gain", "density"):
         if getattr(args, name) is not None:
             setattr(options, name, getattr(args, name))

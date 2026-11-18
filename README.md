@@ -1,6 +1,6 @@
 # Pulse TUI
 
-Audio-reactive 3D wireframe terrain, rendered entirely in your terminal. Powered by [CAVA](https://github.com/karlstav/cava), with stereo terrain, musical camera choreography, crest highlights, a traveling history of the song, and rhythm-guided Braille colors.
+Audio-reactive 3D scenes, rendered entirely in your terminal. Powered by [CAVA](https://github.com/karlstav/cava), with wireframe terrain, endless ribbons, expanding orbital fragments, filament currents, musical cameras, and rhythm-guided Braille colors.
 
 ![The selected cinematic look](docs/media/showcase/cinematic.gif)
 
@@ -26,6 +26,35 @@ python3 -m venv .venv
 ```
 
 Pulse uses live audio from CAVA. You can also double-click `Pulse.command` in Finder to start it. macOS may request system-audio capture permission for CAVA.
+
+## Scenes
+
+Press **`s`** for the next scene or **Shift+`s`** for the previous one:
+**Terrain → Endless Ribbons → Orbital Fragments → Filament Current**.
+Terrain remains the default. Scene switching preserves your palette, camera,
+detail, response strength, pause state, and live audio history.
+
+```sh
+./Pulse.command --scene ribbons
+./Pulse.command --scene orbit --palette warm
+./Pulse.command --scene filaments --palette neon
+./Pulse.command --scene terrain
+```
+
+- **Endless Ribbons:** broad sheets and narrow strands taper and weave over and
+  under each other, with travelling curves, twists, ribs, and audio accents.
+- **Orbital Fragments:** dense broken arcs concentrate in the center; fading
+  fragments expand toward the margins and bass sends light fronts outward.
+- **Filament Current:** finite strands stream through layered currents, with
+  fading heads and tails, rolling eddies, and travelling audio accents.
+
+All scenes use the existing local CAVA analysis, adaptive/fixed/Cycle palettes,
+camera controls, and native/NumPy rendering paths. `[` and `]` adjust real
+geometry detail in every scene. The existing `v` key changes looks and `p`
+changes palettes independently of the scene.
+
+[Watch actual terminal scene recordings](docs/media/scenes/index.html) ·
+[Scene guide](docs/scenes.md)
 
 ## Looks and fallbacks
 
@@ -154,10 +183,11 @@ If a very large window remains slow, use `[` to reduce mesh density slightly, or
 
 | Key | Action |
 | --- | --- |
-| `]` / `[` | Finer / coarser mesh |
+| `s` / Shift+`s` | Next / previous scene |
+| `]` / `[` | Finer / coarser geometry detail |
 | `c` | Cycle musical choreography, flight, orbit, overhead, fixed |
 | `v` | Cycle looks, including Classic and intermediate stages |
-| `p` | Cycle adaptive colors / warm / blue / neon |
+| `p` | Cycle Auto / Cycle / all nine fixed palettes |
 | Arrow keys | Adjust viewing angle and height |
 | Space | Pause motion; mesh and camera controls remain available |
 | `+` / `-` | Adjust response strength |
@@ -169,7 +199,11 @@ If a very large window remains slow, use `[` to reduce mesh density slightly, or
 
 The application starts CAVA as a child process using raw, 8-bit stereo output: 64 bands per channel (128 bytes per frame). It copies the input settings from `~/.config/cava/config` into a temporary configuration. Your CAVA config and iTerm2 settings are not modified. The child process and temporary config are cleaned up on normal exit or Ctrl-C.
 
-Bass, mids, and highs drive different ripple widths and speeds. Sudden increases trigger pulses; sustained frequency amplitudes also shape the surface. This is an onset heuristic, not precise BPM tracking or instrument separation. Live capture errors are reported directly. Use `--mono` for mono input devices or to disable stereo capture/placement.
+Bass, mids, and highs drive different scene deformations and travelling accents.
+Sudden increases trigger pulses; sustained frequency amplitudes shape the geometry.
+This is an onset heuristic, not precise BPM tracking or instrument separation.
+Live capture errors are reported directly. Use `--mono` for mono input devices or
+to disable stereo capture/placement.
 
 ```sh
 ./Pulse.command --input-method coreaudio --source tap

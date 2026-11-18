@@ -143,7 +143,7 @@ import pty
 master,slave=pty.openpty()
 fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',35,100,0,0))
 original=termios.tcgetattr(slave)
-p=subprocess.Popen([*CLI,'--palette','blue','--input-method','fifo','--source','/dev/zero','--fps','18','--duration','8'],stdin=slave,stdout=slave,stderr=slave)
+p=subprocess.Popen([*CLI,'--scene','ribbons','--palette','blue','--input-method','fifo','--source','/dev/zero','--fps','18','--duration','8'],stdin=slave,stdout=slave,stderr=slave)
 output=bytearray()
 def pump(seconds):
  end=time.monotonic()+seconds
@@ -157,6 +157,12 @@ assert p.poll() is None, output.decode(errors='replace')[-2000:]
 os.write(master,b'c+]p');pump(.6)
 assert b'WIREFRAME' in output and b'LIVE / CAVA' in output
 assert b'blue' in output and b'neon' in output
+assert b'Endless Ribbons' in output
+for label in (b'Orbital Fragments',b'Filament Current',b'Terrain',b'Endless Ribbons'):
+ os.write(master,b's');pump(.18)
+ assert label in output, label
+os.write(master,b'S');pump(.18)
+assert b'Filament Current' in output
 os.write(master,b'v');pump(.3)
 assert b'classic' in output
 fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',24,80,0,0));p.send_signal(signal.SIGWINCH)
@@ -169,7 +175,7 @@ after[3] &= ~getattr(termios, 'PENDIN', 0)
 original[3] &= ~getattr(termios, 'PENDIN', 0)
 assert after==original, [(i,a,b) for i,(a,b) in enumerate(zip(original,after)) if a!=b]
 os.close(master);os.close(slave)
-print('PASS interactive mesh/camera/energy controls, resize, quit, terminal restoration')
+print('PASS scene switching, mesh/camera/energy controls, resize, quit, terminal restoration')
 
 # Ctrl-C must restore terminal settings and the alternate screen as well.
 master,slave=pty.openpty()

@@ -1,4 +1,4 @@
-"""Turn frequency amplitudes into an animated 3D height field."""
+"""Shared audio state, pulses, colors, and the original terrain height field."""
 from __future__ import annotations
 
 import dataclasses
@@ -24,7 +24,7 @@ class Pulse:
 
 
 class Scene:
-    """Audio-responsive heights and colors, independent of camera or terminal."""
+    """Audio state shared by all geometry, independent of camera or terminal."""
     def __init__(self, color_response=1.35, cycle_seconds=14.0):
         self.colors = AdaptiveColors(response=color_response, cycle_seconds=cycle_seconds)
         self.history = TerrainHistory()
